@@ -8,6 +8,10 @@
 
 import UIKit
 
+protocol ATrickyViewDelegate {
+    func aTrickyViewDelegate(currentKeyboardRect keyboardRect: CGRect?)
+}
+
 class ATrickyView: UIView {
 
     /*
@@ -21,6 +25,8 @@ class ATrickyView: UIView {
     var isObserverAdded = false
     var pointer: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>()
     
+    var delegate: ATrickyViewDelegate?
+    
     convenience init() {
         self.init(frame: CGRectZero)
     }
@@ -28,8 +34,8 @@ class ATrickyView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.frame = UIScreen.mainScreen().bounds
-        self.frame.size.height = 50
-        self.backgroundColor = UIColor.greenColor()
+        self.frame.size.height = 0
+        self.backgroundColor = UIColor.clearColor()
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -43,8 +49,8 @@ class ATrickyView: UIView {
             self.superview?.removeObserver(self, forKeyPath: "frame", context: pointer)
         }
         
-        newSuperview?.addObserver(self, forKeyPath: "center", options: NSKeyValueObservingOptions.init(rawValue: 0), context: pointer)
         newSuperview?.addObserver(self, forKeyPath: "frame", options: NSKeyValueObservingOptions.init(rawValue: 0), context: pointer)
+        newSuperview?.addObserver(self, forKeyPath: "center", options: NSKeyValueObservingOptions.init(rawValue: 0), context: pointer)
         isObserverAdded = true
         
         print(newSuperview)
@@ -60,7 +66,13 @@ class ATrickyView: UIView {
     }
     
     override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
-        print("something")
+        if keyPath == "center" {
+            if let object = object {
+                if object.isEqual(self.superview) {
+                    delegate?.aTrickyViewDelegate(currentKeyboardRect: self.superview?.frame)
+                }
+            }
+        }
     }
     
     
