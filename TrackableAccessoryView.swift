@@ -26,6 +26,15 @@ class ATrickyView: UIView {
     var pointer: UnsafeMutablePointer<Void> = UnsafeMutablePointer<Void>()
     
     var delegate: ATrickyViewDelegate?
+    var barHeight: CGFloat = 44 {
+        didSet {
+            print("bar height update \(barHeight)")
+            if self.constraints.count > 0 {
+                self.constraints[0].constant = barHeight
+                print(self.constraints)
+            }
+        }
+    }
     
     convenience init() {
         self.init(frame: CGRectZero)
@@ -34,8 +43,12 @@ class ATrickyView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.frame = UIScreen.mainScreen().bounds
-        self.frame.size.height = 0
+        self.frame.size.height = barHeight
         self.backgroundColor = UIColor.clearColor()
+        self.layer.borderColor = UIColor.greenColor().CGColor
+        self.layer.borderWidth = 3.0
+        self.userInteractionEnabled = false
+        print("acc view setup with height \(barHeight)")
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -69,7 +82,14 @@ class ATrickyView: UIView {
         if keyPath == "center" {
             if let object = object {
                 if object.isEqual(self.superview) {
-                    delegate?.aTrickyViewDelegate(currentKeyboardRect: self.superview?.frame)
+                    var frame = self.superview!.frame
+                    frame.size.height -= barHeight
+                    frame.origin.y += barHeight
+                    print(self.superview)
+                    print(frame)
+                    if frame.origin.y <= UIScreen.mainScreen().bounds.height {
+                        delegate?.aTrickyViewDelegate(currentKeyboardRect: frame)
+                    }
                 }
             }
         }
